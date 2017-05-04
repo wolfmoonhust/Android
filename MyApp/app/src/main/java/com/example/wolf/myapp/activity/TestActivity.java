@@ -49,7 +49,12 @@ public class TestActivity extends AppCompatActivity {
     static final int VIEW_MODE_GRIDVIEW = 1;
     private int currentViewMode = 0;
     private ArrayList<Item> productList;
+    private String currentParrent = "";
+    private String currentFileNameSelected="";
+    private String currentParentFileSelected="";
     private String currentPath="";
+    private String targetFolderSelected="";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +64,7 @@ public class TestActivity extends AppCompatActivity {
 //        wvTest.
         //new MyAsyncTask().execute(MainActivity.baseUrl+GenreActivity.tailUrl);
 //        new getPostAsynTask().execute(testUrl);
-       // Util.getAllFolder();
+        // Util.getAllFolder();
 
         stubList = (ViewStub) findViewById(R.id.stub_list);
         stubGrid = (ViewStub) findViewById(R.id.stub_grid);
@@ -108,28 +113,34 @@ public class TestActivity extends AppCompatActivity {
 
     }
 
-    AdapterView.OnItemLongClickListener onItemLongClickListener= new AdapterView.OnItemLongClickListener() {
+    AdapterView.OnItemLongClickListener onItemLongClickListener = new AdapterView.OnItemLongClickListener() {
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-            Log.e(LOG_TAG,"onItemLongClick");
-            return false;
+            Log.e(LOG_TAG, "onItemLongClick");
+            view.setSelected(true);
+            currentFileNameSelected=productList.get(position).getName();
+            currentParentFileSelected=productList.get(position).getParent();
+            return true;
         }
     };
 
 
-    AdapterView.OnItemClickListener onItemClickListener= new AdapterView.OnItemClickListener() {
+    AdapterView.OnItemClickListener onItemClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            SparseBooleanArray clickItemPosition=listView.getCheckedItemPositions();
-            Log.e(LOG_TAG,productList.get(position).getName());
-            if(productList.get(position).isDirectory()){
+            SparseBooleanArray clickItemPosition = listView.getCheckedItemPositions();
+            //view.setSelected(true);
+            Log.e(LOG_TAG, productList.get(position).getName());
+            if (productList.get(position).isDirectory()) {
                 getProductList(productList.get(position).getPath());
                 setAdapters();
             }
 //            ArrayList<String> newList= Util.getAllFolder(productList.get(position).getPath());
-              //  Util.deleteFile(productList.get(position).getPath());
+            //  Util.deleteFile(productList.get(position).getPath());
         }
     };
+
+
 
     private void switchView() {
 
@@ -147,23 +158,29 @@ public class TestActivity extends AppCompatActivity {
         setAdapters();
 
     }
+
     private void setAdapters() {
-        if(VIEW_MODE_LISTVIEW == currentViewMode) {
-            listViewAdapter = new ListViewAdapter(productList,this);
+        if (VIEW_MODE_LISTVIEW == currentViewMode) {
+            listViewAdapter = new ListViewAdapter(productList, this);
             listView.setAdapter(listViewAdapter);
         } else {
-            gridViewAdapter = new GridViewAdapter(productList,this);
+            gridViewAdapter = new GridViewAdapter(productList, this);
             gridView.setAdapter(gridViewAdapter);
         }
     }
 
     public List<Item> getProductList(String path) {
-        productList= new ArrayList<>();
-        productList= Util.getAllFolder(path);
-        File currentFile=new File(path);
-        currentPath=currentFile.getParent();
-        Log.e(LOG_TAG,"currentPath "+currentPath);
-        return productList;
+        productList = new ArrayList<>();
+        productList = Util.getAllFolder(path);
+        File currentFile = new File(path);
+
+        if(currentFile.isDirectory()){
+            currentParrent = currentFile.getParent();
+            currentPath=path;
+            Log.e(LOG_TAG, "currentParrent " + currentParrent);
+            return productList;
+        }
+        return null;
     }
 
     @Override
@@ -174,19 +191,56 @@ public class TestActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.e(LOG_TAG,"onOptionItemSelected");
+        //Log.e(LOG_TAG, "onOptionItemSelected");
         switch (item.getItemId()) {
-            case R.id.item_menu_1:
+            case R.id.item_menu_1: {
                 if (currentViewMode == VIEW_MODE_LISTVIEW) {
-                currentViewMode = VIEW_MODE_GRIDVIEW;
-            } else {
-                currentViewMode=VIEW_MODE_LISTVIEW;
-            }
+                    currentViewMode = VIEW_MODE_GRIDVIEW;
+                } else {
+                    currentViewMode = VIEW_MODE_LISTVIEW;
+                }
                 switchView();
                 break;
+            }
+            case R.id.item_copy: {
+                Log.e(LOG_TAG,"copy");
+
+                break;
+            }
+            case R.id.item_delete: {
+//                Util.deleteFile();
+
+                if(currentFileNameSelected!=null&&currentParentFileSelected!=null){
+                    Util.deleteFile(currentParentFileSelected+"/"+currentFileNameSelected);
+                    updateUI(currentParentFileSelected);
+                    currentFileNameSelected="";
+                    Log.e(LOG_TAG,"delete ");
+
+                }
+                break;
+            }
+
+            case R.id.item_patse: {
+                Log.e(LOG_TAG,"pase");
+                targetFolderSelected= currentParrent;
+                Util.copyFile(currentParentFileSelected+"/",currentFileNameSelected,currentPath+"/");
+                updateUI(currentPath);
+                break;
+            }
+            case  R.id.item_rename:
+            {
+                Util.reNameFile(currentParentFileSelected,currentFileNameSelected,"abc.mp3");
+                updateUI(currentParentFileSelected);
+                break;
+            }
         }
 
         return true;
+    }
+
+    public void updateUI(String current){
+        getProductList(current);
+        setAdapters();
     }
 
     public class MyAsyncTask extends AsyncTask<String, Void, String> {
@@ -253,11 +307,11 @@ public class TestActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Log.e(LOG_TAG,"onbackPressed");
-        if(currentPath.equals("/storage/emulated")){
+        Log.e(LOG_TAG, "onbackPressed");
+        if (currentParrent.equals("/storage/emulated")) {
             finish();
-        }else{
-            getProductList(currentPath);
+        } else {
+            getProductList(currentParrent);
             setAdapters();
 
         }

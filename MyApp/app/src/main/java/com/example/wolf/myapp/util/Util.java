@@ -1,5 +1,6 @@
 package com.example.wolf.myapp.util;
 
+import android.os.Environment;
 import android.util.Log;
 
 import com.example.wolf.myapp.model.Item;
@@ -119,5 +120,13 @@ public class Util {
             Log.e("tag", e.getMessage());
         }
 
+    }
+
+    public static void reNameFile(String currentParrentPath,String currentName, String newName){
+        File dir= new File(currentParrentPath);
+        Log.e(LOG_TAG,dir.toString());
+        File from      = new File(dir, currentName);
+        File to        = new File(dir, newName);
+        from.renameTo(to);
     }
 }
