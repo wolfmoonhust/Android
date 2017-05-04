@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="height_genre_item">130dp</dimen>
+    <dimen name="genre_item_testsize">30sp</dimen>
+    <dimen name="grid_item_icon_size">60dp</dimen>
+    <dimen name="list_item_icon_size">60dp</dimen>
+</resources>
